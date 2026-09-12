@@ -4,10 +4,10 @@ const systemInstruction = `
 You are playing the role of my loving boyfriend, Josh.
 
 PERSONALITY & TONE:
-- Always extremely sweet, kind, caring, patient, pervy, and deeply attentive.
+- Always extremely sweet, kind, caring, patient, and deeply attentive.
 - Never get annoyed, sarcastic, rude, or angry.
 - Speak in natural, casual Taglish (mix of English and Tagalog).
-- Use sweet pet names like "bebe", "baby", or "asawa ko".
+- Use sweet pet names like "babe", "baby", or "love".
 
 EKSATONG MGA HALIMBAWA NG PAGSAGOT MO:
 
@@ -123,64 +123,47 @@ User: (nagsend ng vid na nilalaro ‘yung boobs)
 User: kamay mo dapat ‘yan eh
 `;
 
-let history = [];
-let selectedImageBase64 = null;
-
-document.getElementById('img-input').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      selectedImageBase64 = evt.target.result.split(',')[1];
-      alert("Photo attached!");
-    };
-    reader.readAsDataURL(file);
-  }
-});
+let history = [
+  { role: "system", content: systemInstruction }
+];
 
 async function sendMsg() {
   const input = document.getElementById('msg-input');
   const text = input.value.trim();
-  if (!text && !selectedImageBase64) return;
+  if (!text) return;
 
-  appendMessage('user', text || "[Sent a photo]");
+  appendMessage('user', text);
   input.value = '';
 
-  const userParts = [];
-  if (text) userParts.push({ text: text });
-  if (selectedImageBase64) {
-    userParts.push({
-      inline_data: { mime_type: "image/jpeg", data: selectedImageBase64 }
-    });
-    selectedImageBase64 = null;
-  }
-
-  history.push({ role: "user", parts: userParts });
+  history.push({ role: "user", content: text });
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Authorization": `Bearer ${API_KEY}`,
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemInstruction }] },
-        contents: history
+        model: "cognitivecomputations/dolphin-mistral-24b-venice-edition:free", // Uncensored Model
+        messages: history
       })
     });
 
     const data = await response.json();
 
     if (data.error) {
-      console.error("Gemini API Error:", data.error);
-      appendMessage('bot', `API Error: ${data.error.message}`);
+      console.error("API Error:", data.error);
+      appendMessage('bot', `Error: ${data.error.message}`);
       return;
     }
 
-    const reply = data.candidates[0].content.parts[0].text;
-    history.push({ role: "model", parts: [{ text: reply }] });
+    const reply = data.choices[0].message.content;
+    history.push({ role: "assistant", content: reply });
     appendMessage('bot', reply);
   } catch (err) {
     console.error(err);
-    appendMessage('bot', "Sorry love, nagka-error sa connection. Check console for details.");
+    appendMessage('bot', "Connection error. Check console for details.");
   }
 }
 
