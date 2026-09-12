@@ -1,4 +1,4 @@
-const API_KEY = "AQ.Ab8RN6IT8vnBbA4Xe0DxPL-4AjAo9BSUJb2R_rAbBYLIsNp3DA";
+const API_KEY = "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";
 
 const systemInstruction = `
 You are playing the role of my loving boyfriend, Josh.
