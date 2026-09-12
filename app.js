@@ -145,7 +145,7 @@ async function sendMsg() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "cognitivecomputations/dolphin-mistral-24b-venice-edition:free", // Uncensored Model
+        model: "meta-llama/llama-3-8b-instruct:free",
         messages: history
       })
     });
